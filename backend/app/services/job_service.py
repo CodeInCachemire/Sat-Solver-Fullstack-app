@@ -1,3 +1,5 @@
+import json
+
 import redis
 import logging
 from redis.exceptions import ConnectionError, TimeoutError, RedisError
@@ -159,6 +161,6 @@ class JobService:
             formula_id=run["formula_id"],
             formula=formula,
             result=result["result"],
-            assignment=result["assignment"],
+            assignment=json.loads(result["assignment"]) if result["assignment"] else None,
             runtime=result["runtime_s"]
         )
