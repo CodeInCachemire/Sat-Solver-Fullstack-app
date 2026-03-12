@@ -83,7 +83,7 @@ ALLOWED_ORIGINS = os.getenv(
 # Configure CORS to allow frontend access
 app.add_middleware(
     CORSMiddleware,
-    ALLOWED_ORIGINS,
+    allow_origins = ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
