@@ -96,7 +96,7 @@ class Worker:
                 # Parse error - store as failed result
                 self.db.insert_result(
                     run_id=run_id,
-                    result="ERROR",
+                    result="PARSE_ERROR",
                     assignment=None,
                     stdout=stdout,
                     stderr=stderr,
@@ -129,7 +129,7 @@ class Worker:
                 # Unexpected return code
                 self.db.insert_result(
                     run_id=run_id,
-                    result="ERROR",
+                    result="UNEXPECTED_RETURNCODE",
                     assignment=None,
                     stdout=stdout,
                     stderr=stderr,
@@ -190,7 +190,7 @@ class Worker:
             try:
                 self.db.insert_result(
                     run_id=run_id,
-                    result="ERROR",
+                    result="EXEC_ERROR",
                     assignment=None,
                     stdout="",
                     stderr="",

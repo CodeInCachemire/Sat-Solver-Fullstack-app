@@ -1,35 +1,64 @@
-# Python cache
-__pycache__/
-*.pyc
-*.pyo
+# OS and editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
 
-# Virtual environments
+# Python cache and tooling
+__pycache__/
+*.py[cod]
+*.pyd
+*.pdb
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Python environments
 venv/
 .venv/
 env/
+
+# Local environment files (keep examples tracked)
 .env
+.env.*
+!.env.example
+!.env.*.example
+!.env.docker
 
-plans/
-tests_new/
-python_scripts/
-
-#c files
+# C/C++ build artifacts
 *.o
+*.obj
 *.out
 *.a
 *.so
+*.dll
+*.dylib
 *.exe
 *.elf
 *.debug.o
 
-# Build directories (common names)
+# Build/output folders
 build/
 bin/
-.env.dev
-.env.prod
-.env.test
-# VS Code
-.vscode/
+dist/
+node_modules/
+
+# Logs and temporary files
+*.log
+*.tmp
+*.temp
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Optional local artifacts
+plans/
+python_scripts/
+tests_new/
 start_api.sh
 start_worker.sh
 start_frontend.sh

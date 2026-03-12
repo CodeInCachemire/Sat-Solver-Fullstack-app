@@ -1,0 +1,159 @@
+version: "3.8"
+
+services:
+  # Redis - Queue service (standalone)
+  redis:
+    container_name: sat-solver-redis
+    build:
+      context: .
+      dockerfile: Dockerfile.redis
+    ports:
+      - "6379:6379"
+    networks:
+      - sat-solver-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    restart: unless-stopped
+    volumes:
+      - redis-data:/data
+
+  # Backend API + Solver (depends on Redis and PostgreSQL)
+  backend:
+    container_name: sat-solver-backend
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    ports:
+      - "8000:8000"
+    environment:
+      # PostgreSQL (External - local testing, NOT containerized)
+      DB_HOST: host.docker.internal
+      DB_PORT: 5432
+      DB_NAME: sat_solver
+      DB_USER: sat_user
+      DB_PASSWORD: 12345
+      # Redis (Internal - docker network)
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      # Python config
+      PYTHONUNBUFFERED: 1
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - sat-solver-network
+    restart: unless-stopped
+    # Mount solver binaries if needed for development
+    volumes:
+      - ./bin:/app/bin:ro
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # Worker 1 (depends on Redis and PostgreSQL)
+  worker-1:
+    container_name: sat-solver-worker-1
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    environment:
+      # PostgreSQL (External - local testing, NOT containerized)
+      DB_HOST: host.docker.internal
+      DB_PORT: 5432
+      DB_NAME: sat_solver
+      DB_USER: sat_user
+      DB_PASSWORD: 12345
+      # Redis (Internal - docker network)
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      # Python config
+      PYTHONUNBUFFERED: 1
+      WORKER_ID: worker-1
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - sat-solver-network
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./bin:/app/bin:ro
+
+  # Worker 2 (depends on Redis and PostgreSQL)
+  worker-2:
+    container_name: sat-solver-worker-2
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    environment:
+      # PostgreSQL (External - local testing, NOT containerized)
+      DB_HOST: host.docker.internal
+      DB_PORT: 5432
+      DB_NAME: sat_solver
+      DB_USER: sat_user
+      DB_PASSWORD: 12345
+      # Redis (Internal - docker network)
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 0
+      # Python config
+      PYTHONUNBUFFERED: 1
+      WORKER_ID: worker-2
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - sat-solver-network
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./bin:/app/bin:ro
+
+  # Frontend (nginx serving static files)
+  frontend:
+    container_name: sat-solver-frontend
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - sat-solver-network
+    restart: unless-stopped
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "curl",
+          "-f",
+          "-s",
+          "--max-time",
+          "5",
+          "http://localhost:3000/"
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+networks:
+  sat-solver-network:
+    driver: bridge
+
+volumes:
+  redis-data:

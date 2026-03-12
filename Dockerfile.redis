@@ -1,0 +1,10 @@
+# Redis container - lightweight Alpine image
+FROM redis:7-alpine
+
+EXPOSE 6379
+
+# Redis configuration for optimal performance
+CMD ["redis-server", \
+     "--maxmemory", "256mb", \
+     "--maxmemory-policy", "allkeys-lru", \
+     "--appendonly", "no"]

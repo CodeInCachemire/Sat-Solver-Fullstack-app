@@ -1,0 +1,61 @@
+# docker-compose.prod.yml
+# AWS Production Override
+#
+# Usage:
+#   docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# This overrides the local settings with AWS-specific values
+
+version: "3.8"
+
+services:
+  backend:
+    environment:
+      # AWS RDS PostgreSQL
+      DB_HOST: ${AWS_RDS_ENDPOINT}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      # Redis on EC2
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      PYTHONUNBUFFERED: 1
+    # No health check changes needed
+    restart: always
+
+  worker-1:
+    environment:
+      # AWS RDS PostgreSQL
+      DB_HOST: ${AWS_RDS_ENDPOINT}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      # Redis on EC2
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      PYTHONUNBUFFERED: 1
+      WORKER_ID: worker-1
+    restart: always
+
+  worker-2:
+    environment:
+      # AWS RDS PostgreSQL
+      DB_HOST: ${AWS_RDS_ENDPOINT}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      # Redis on EC2
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      PYTHONUNBUFFERED: 1
+      WORKER_ID: worker-2
+    restart: always
+
+  redis:
+    restart: always
+
+  frontend:
+    restart: always

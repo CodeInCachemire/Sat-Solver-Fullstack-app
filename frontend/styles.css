@@ -121,7 +121,8 @@ body {
 
 .output-line {
     margin: 4px 0;
-    word-wrap: break-word;
+    white-space: pre;        /* CRITICAL */
+    font-family: inherit;    /* Ensure strict monospace */
 }
 
 .output-command {
@@ -223,36 +224,37 @@ body {
     40% { content: '..'; }
     60%, 100% { content: '...'; }
 }
-
-/* Job Card Styling */
 .job-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    padding: 12px;
-    margin: 8px 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    background: #0f1424;
+    border: 1px solid var(--text-secondary);
+    padding: 15px;
+    margin: 12px 0;
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.1);
 }
 
 .job-card-header {
     font-weight: bold;
-    margin-bottom: 8px;
     color: var(--text-info);
+    margin-bottom: 10px;
+    letter-spacing: 1px;
 }
 
 .job-card-row {
     display: flex;
-    margin: 4px 0;
+    margin: 6px 0;
 }
 
 .job-card-label {
-    min-width: 120px;
+    width: 130px;
     color: var(--text-muted);
 }
 
 .job-card-value {
+    flex: 1;
     color: var(--text-primary);
+    word-break: break-word;
 }
+
 
 /* Responsive */
 @media (max-width: 768px) {

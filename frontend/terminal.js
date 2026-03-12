@@ -34,14 +34,14 @@ document.addEventListener('DOMContentLoaded', () => {
 function setupEventListeners() {
     submitInput.addEventListener('keydown', (e) => handleKeydown(e, 'left'));
     statusInput.addEventListener('keydown', (e) => handleKeydown(e, 'right'));
-    
+
     submitInput.addEventListener('focus', () => focusPanel('left'));
     statusInput.addEventListener('focus', () => focusPanel('right'));
 }
 
 function handleKeydown(e, panel) {
     const input = panel === 'left' ? submitInput : statusInput;
-    
+
     if (e.key === 'Enter') {
         e.preventDefault();
         const command = input.value.trim();
@@ -71,9 +71,9 @@ async function processCommand(command, panel) {
     const parts = command.split(' ');
     const cmd = parts[0].toLowerCase();
     const args = parts.slice(1);
-    
+
     appendOutput(`<span class="output-command">&gt; ${escapeHtml(command)}</span>`, panel);
-    
+
     switch (cmd) {
         case 'help':
             showHelp(panel);
@@ -114,7 +114,7 @@ function showHelp(panel) {
         '  submit <formula>    Submit a SAT formula (RPN notation)',
         '                      Example: submit A B &&',
         '  <formula>           Directly type formula to submit',
-        '                      Supports: &&, ||, !, =>, variables',
+        '                      Supports: &&, ||, !, =>, <=> variables',
         '  help                Show this help message',
         '  clear               Clear the terminal output',
         '  health              Check API server health',
@@ -122,7 +122,7 @@ function showHelp(panel) {
         '═══════════════════════════════════════════════════════',
         ''
     ];
-    
+
     const rightHelp = [
         '',
         '═══════════════ STATUS CHECK COMMANDS ═════════════════',
@@ -138,7 +138,7 @@ function showHelp(panel) {
         '═══════════════════════════════════════════════════════',
         ''
     ];
-    
+
     const helpText = panel === 'left' ? leftHelp : rightHelp;
     helpText.forEach(line => appendOutput(line, panel, 'info'));
 }
@@ -149,20 +149,20 @@ async function submitJob(formula, panel) {
         appendOutput('Error: No formula provided', panel, 'error');
         return;
     }
-    
+
     appendOutput(`Submitting formula: ${formula}`, panel, 'info');
-    
+
     const output = panel === 'left' ? submitOutput : statusOutput;
     const loadingDiv = document.createElement('div');
     loadingDiv.className = 'output-line output-muted';
     loadingDiv.innerHTML = '<span class="loading">Processing</span>';
     output.appendChild(loadingDiv);
     output.scrollTop = output.scrollHeight;
-    
+
     try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
-        
+
         const response = await fetch(`${API_BASE_URL}/jobs/submit`, {
             method: 'POST',
             headers: {
@@ -175,10 +175,10 @@ async function submitJob(formula, panel) {
             }),
             signal: controller.signal
         });
-        
+
         clearTimeout(timeoutId);
         loadingDiv.remove(); // Remove loading message
-        
+
         if (!response.ok) {
             let errorMsg = `HTTP ${response.status}`;
             try {
@@ -189,7 +189,7 @@ async function submitJob(formula, panel) {
             }
             throw new Error(errorMsg);
         }
-        
+
         const data = await response.json();
         displayJobSubmission(data, panel);
     } catch (error) {
@@ -209,12 +209,12 @@ async function checkStatus(runId, panel) {
         appendOutput('Usage: status <run_id>', panel, 'muted');
         return;
     }
-    
+
     appendOutput(`Checking status for run_id: ${runId}`, panel, 'info');
-    
+
     try {
         const response = await fetch(`${API_BASE_URL}/jobs/status/${runId}`);
-        
+
         if (!response.ok) {
             let errorMsg = `HTTP ${response.status}`;
             try {
@@ -225,13 +225,13 @@ async function checkStatus(runId, panel) {
             }
             throw new Error(errorMsg);
         }
-        
+
         const data = await response.json();
         displayStatus(data, panel);
     } catch (error) {
         const errorMsg = error.message || String(error) || 'Unknown error';
         appendOutput(`Error: ${errorMsg}`, panel, 'error');
-        
+
         if (errorMsg.includes('not found') || errorMsg.includes('404')) {
             appendOutput('', panel);
             appendOutput('💡 Tip: Submit a job first to get a run_id, then check its status.', panel, 'info');
@@ -246,12 +246,12 @@ async function getResult(runId, panel) {
         appendOutput('Usage: result <run_id>', panel, 'muted');
         return;
     }
-    
+
     appendOutput(`Fetching result for run_id: ${runId}`, panel, 'info');
-    
+
     try {
         const response = await fetch(`${API_BASE_URL}/jobs/result/${runId}`);
-        
+
         if (!response.ok) {
             let errorMsg = `HTTP ${response.status}`;
             try {
@@ -262,39 +262,18 @@ async function getResult(runId, panel) {
             }
             throw new Error(errorMsg);
         }
-        
+
         const data = await response.json();
         displayResult(data, panel);
     } catch (error) {
         const errorMsg = error.message || String(error) || 'Unknown error';
         appendOutput(`Error: ${errorMsg}`, panel, 'error');
-        
+
         if (errorMsg.includes('not found') || errorMsg.includes('404')) {
             appendOutput('', panel);
             appendOutput('💡 Tip: Make sure the run_id exists and the job has completed.', panel, 'info');
             appendOutput('   Use "status <run_id>" to check if the job is done first.', panel, 'muted');
         }
-    }
-}
-
-async function checkHealth(panel) {
-    const boxWidth = 53;
-    
-    try {
-        const response = await fetch(`${API_BASE_URL}/health`);
-        const data = await response.json();
-        
-        appendOutput('', panel);
-        appendOutput('╔═══════════════════════════════════════════════════════╗', panel, 'success');
-        appendOutput(`║ ${centerText('HEALTH CHECK', boxWidth)} ║`, panel, 'success');
-        appendOutput('╠═══════════════════════════════════════════════════════╣', panel, 'success');
-        appendOutput(`║ ${formatKeyValue('Status:', (data.status || 'unknown').toUpperCase(), boxWidth)} ║`, panel);
-        appendOutput(`║ ${formatKeyValue('Database:', data.database || 'unknown', boxWidth)} ║`, panel);
-        appendOutput(`║ ${formatKeyValue('Redis:', data.redis || 'unknown', boxWidth)} ║`, panel);
-        appendOutput('╚═══════════════════════════════════════════════════════╝', panel, 'success');
-        appendOutput('', panel);
-    } catch (error) {
-        appendOutput(`Health check failed: ${error.message}`, panel, 'error');
     }
 }
 
@@ -313,43 +292,77 @@ async function checkConnection() {
     }
 }
 
+function createCard(title, rows, panel, colorClass = '') {
+    const output = panel === 'left' ? submitOutput : statusOutput;
+
+    const card = document.createElement('div');
+    card.className = 'job-card';
+
+    if (colorClass) {
+        card.classList.add(`output-${colorClass}`);
+    }
+
+    const header = document.createElement('div');
+    header.className = 'job-card-header';
+    header.textContent = title;
+
+    card.appendChild(header);
+
+    rows.forEach(([label, value]) => {
+        const row = document.createElement('div');
+        row.className = 'job-card-row';
+
+        const labelEl = document.createElement('div');
+        labelEl.className = 'job-card-label';
+        labelEl.textContent = label;
+
+        const valueEl = document.createElement('div');
+        valueEl.className = 'job-card-value';
+        valueEl.textContent = value;
+
+        row.appendChild(labelEl);
+        row.appendChild(valueEl);
+        card.appendChild(row);
+    });
+
+    output.appendChild(card);
+    output.scrollTop = output.scrollHeight;
+}
+
 // Display Functions
 function displayJobSubmission(data, panel) {
-    const boxWidth = 53;
-    
-    appendOutput('', panel);
-    appendOutput('╔═══════════════════════════════════════════════════════╗', panel, 'success');
-    appendOutput(`║ ${centerText('JOB SUBMITTED', boxWidth)} ║`, panel, 'success');
-    appendOutput('╠═══════════════════════════════════════════════════════╣', panel, 'success');
-    appendOutput(`║ ${formatKeyValue('Run ID:', String(data.run_id), boxWidth)} ║`, panel);
-    appendOutput(`║ ${formatKeyValue('Formula ID:', String(data.formula_id), boxWidth)} ║`, panel);
-    appendOutput(`║ ${formatKeyValue('Status:', data.status, boxWidth)} ║`, panel);
-    appendOutput(`║ ${formatKeyValue('Formula:', truncate(data.formula, 35), boxWidth)} ║`, panel);
-    appendOutput('╠═══════════════════════════════════════════════════════╣', panel, 'success');
-    appendOutput(`║ ${centerText(data.msg, boxWidth)} ║`, panel, 'info');
-    appendOutput('╚═══════════════════════════════════════════════════════╝', panel, 'success');
-    appendOutput('', panel);
-    
+    createCard(
+        'JOB SUBMITTED',
+        [
+            ['Run ID:', data.run_id],
+            ['Formula ID:', data.formula_id],
+            ['Status:', data.status],
+            ['Formula:', data.formula],
+            ['Message:', data.msg]
+        ],
+        panel,
+        'success'
+    );
+
     if (data.status === 'QUEUED' || data.status === 'CREATED') {
         appendOutput(`➜ Use 'status ${data.run_id}' to check progress`, panel, 'info');
     } else if (data.status === 'COMPLETED') {
         appendOutput(`➜ Use 'result ${data.run_id}' to view the solution`, panel, 'info');
     }
 }
-
 function displayStatus(data, panel) {
     const statusColor = getStatusColor(data.status);
-    const boxWidth = 53;
-    
-    appendOutput('', panel);
-    appendOutput('╔═══════════════════════════════════════════════════════╗', panel, statusColor);
-    appendOutput(`║ ${centerText('JOB STATUS', boxWidth)} ║`, panel, statusColor);
-    appendOutput('╠═══════════════════════════════════════════════════════╣', panel, statusColor);
-    appendOutput(`║ ${formatKeyValue('Run ID:', String(data.run_id), boxWidth)} ║`, panel);
-    appendOutput(`║ ${formatKeyValue('Status:', data.status, boxWidth, statusColor)} ║`, panel);
-    appendOutput('╚═══════════════════════════════════════════════════════╝', panel, statusColor);
-    appendOutput('', panel);
-    
+
+    createCard(
+        'JOB STATUS',
+        [
+            ['Run ID:', data.run_id],
+            ['Status:', data.status]
+        ],
+        panel,
+        statusColor
+    );
+
     if (data.status === 'COMPLETED') {
         appendOutput(`➜ Use 'result ${data.run_id}' to get the solution`, panel, 'info');
     } else if (data.status === 'PROCESSING') {
@@ -360,32 +373,64 @@ function displayStatus(data, panel) {
 }
 
 function displayResult(data, panel) {
-    const resultColor = data.result === 'SAT' ? 'success' : data.result === 'UNSAT' ? 'warning' : 'error';
-    const boxWidth = 53;
-    
-    appendOutput('', panel);
-    appendOutput('╔═══════════════════════════════════════════════════════╗', panel, resultColor);
-    appendOutput(`║ ${centerText('SOLVER RESULT', boxWidth)} ║`, panel, resultColor);
-    appendOutput('╠═══════════════════════════════════════════════════════╣', panel, resultColor);
-    appendOutput(`║ ${formatKeyValue('Run ID:', String(data.run_id), boxWidth)} ║`, panel);
-    appendOutput(`║ ${formatKeyValue('Formula:', truncate(data.formula, 35), boxWidth)} ║`, panel);
-    appendOutput(`║ ${formatKeyValue('Result:', data.result, boxWidth, resultColor)} ║`, panel);
-    appendOutput(`║ ${formatKeyValue('Runtime:', data.runtime + 's', boxWidth)} ║`, panel);
-    
+    const resultColor =
+        data.result === 'SAT'
+            ? 'success'
+            : data.result === 'UNSAT'
+                ? 'warning'
+                : 'error';
+
+    const rows = [
+        ['Run ID:', data.run_id],
+        ['Formula:', data.formula],
+        ['Result:', data.result],
+        ['Runtime:', (data.runtime * 1000).toFixed(3) + 'ms']
+    ];
+
+    createCard('SOLVER RESULT', rows, panel, resultColor);
+
     if (data.assignment && Object.keys(data.assignment).length > 0) {
-        appendOutput('╠═══════════════════════════════════════════════════════╣', panel, resultColor);
-        appendOutput(`║ ${leftText('ASSIGNMENT:', boxWidth)} ║`, panel, 'key');
-        
-        const assignments = data.assignment;
-        for (const [key, value] of Object.entries(assignments)) {
-            const assignmentText = `  ${key} = ${value ? 'TRUE' : 'FALSE'}`;
-            appendOutput(`  ${leftText(assignmentText, 51)}  `, panel, 'value');
-        }
+        const assignmentRows = Object.entries(data.assignment).map(
+            ([key, value]) => [key, value ? 'TRUE' : 'FALSE']
+        );
+
+        createCard('ASSIGNMENT', assignmentRows, panel, resultColor);
     }
-    
-    appendOutput('╚═══════════════════════════════════════════════════════╝', panel, resultColor);
-    appendOutput('', panel);
 }
+
+async function checkHealth(panel) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/health`);
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        createCard(
+            'HEALTH CHECK',
+            [
+                ['Status:', (data.status || 'unknown').toUpperCase()],
+                ['Database:', data.database || 'unknown'],
+                ['Redis:', data.redis || 'unknown']
+            ],
+            panel,
+            'success'
+        );
+
+    } catch (error) {
+        createCard(
+            'HEALTH CHECK FAILED',
+            [
+                ['Error:', error.message]
+            ],
+            panel,
+            'error'
+        );
+    }
+}
+
 
 function getStatusColor(status) {
     switch (status) {
@@ -423,7 +468,7 @@ function addToHistory(command, panel) {
 function navigateHistory(direction, panel) {
     const input = panel === 'left' ? submitInput : statusInput;
     const history = commandHistory[panel];
-    
+
     if (direction === 'up' && historyIndex[panel] > 0) {
         historyIndex[panel]--;
         input.value = history[historyIndex[panel]];
@@ -441,10 +486,10 @@ function focusPanel(panel) {
     currentPanel = panel;
     const leftPanel = document.querySelector('.left-panel');
     const rightPanel = document.querySelector('.right-panel');
-    
+
     leftPanel.classList.toggle('focused', panel === 'left');
     rightPanel.classList.toggle('focused', panel === 'right');
-    
+
     if (panel === 'left') {
         submitInput.focus();
     } else {
@@ -489,9 +534,9 @@ function leftText(text, width) {
 function formatKeyValue(key, value, width, valueClass = 'value') {
     const keySpan = `<span class="output-key">${key}</span>`;
     const valueSpan = `<span class="output-${valueClass}">${value}</span>`;
-    
+
     // Calculate spacing: total width - key length - value length - 1 space
     const spacing = Math.max(1, width - key.length - value.length);
-    
+
     return keySpan + ' '.repeat(spacing) + valueSpan;
 }
