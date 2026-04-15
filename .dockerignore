@@ -30,7 +30,6 @@ env
 
 # Build and runtime artifacts
 build
-bin
 dist
 node_modules
 *.o

@@ -5,7 +5,7 @@ import sys
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
-from backend.app.api import health, jobs
+from backend.app.api import health, jobs, sudoku
 from backend.app.sync import sync
 from backend.app.db.session import init_db_pool
 from backend.app.redis.redis_session import init_redis_pool
@@ -83,7 +83,7 @@ ALLOWED_ORIGINS = os.getenv(
 # Configure CORS to allow frontend access
 app.add_middleware(
     CORSMiddleware,
-    allow_origins = ALLOWED_ORIGINS,
+    allow_origins = ["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -92,7 +92,7 @@ app.add_middleware(
 app.include_router(health.health_router)
 app.include_router(sync.sync_router)
 app.include_router(jobs.jobs_router)  # Async job submission endpoints
-
+app.include_router(sudoku.sudoku_router)
 
 
 

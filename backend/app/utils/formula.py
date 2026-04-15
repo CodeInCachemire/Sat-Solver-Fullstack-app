@@ -23,7 +23,7 @@ def normalize_rpn(formula_raw: str) -> str:
             normalized_tokens.append(token)
         else:
             raise ValueError(f"Unallowed symbols or operators.")
-    return " ".join(tokens)
+    return " ".join(normalized_tokens)
 
 MAX_FORMULA_LENGTH = 300_000
 MAX_TOKENS = 85_000
