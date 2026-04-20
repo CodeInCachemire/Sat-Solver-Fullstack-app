@@ -21,3 +21,4 @@ ALLOWED_OPERATORS = { '&&', "||", "<=>", "=>", "!"}
 MAX_RETRIES = 3 
 TIMEOUT_S_SUDOKU = 250
 TIMEOUT_S_SAT = 10
+NYT_SUDOKU_URL_BASE = "https://www.nytimes.com/puzzles/sudoku/"

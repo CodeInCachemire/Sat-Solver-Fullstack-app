@@ -33,6 +33,7 @@ def get_health():
 
 @health_router.get("/ready") #readiness check
 def get_readiness():
+    """Readiness check, solver existence check and db readiness check."""
     try:
         check_solver()
         session.check_db_connectivity()

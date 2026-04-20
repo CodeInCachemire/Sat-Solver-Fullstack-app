@@ -1,10 +1,12 @@
 import logging
 import subprocess
 from typing import List
-from fastapi import APIRouter, HTTPException
-from backend.app.schemas.sudoku_schema import SudokuGrid
+from fastapi import APIRouter, HTTPException, File, UploadFile
+from backend.app.schemas.sudoku_schema import SudokuGrid, NYDiffEnum
 from backend.app.solvers.sudoku_solver import run_solver
 from backend.app.utils.sudoku_helper import decode_solution, encode_sudoku, propagate
+from backend.app.core.constants import NYT_SUDOKU_URL_BASE
+from backend.app.utils.sudoku_ny import parse_nyt_sudoku
 
 sudoku_router = APIRouter(prefix="/sudoku", tags=["sudoku-solver"])
 logger = logging.getLogger(__name__)
@@ -12,9 +14,19 @@ logger = logging.getLogger(__name__)
 def print_grid(grid: List[List[int]]):
     for row in grid:
         print(" ".join(str(x) for x in row))
+"""@sudoku_router.post("/image-upload")
+def image_upload(file: UploadFile = File(...)):
+    #TODO nothing done yet
+    pass"""
 
+@sudoku_router.get("/ny-puzzle/{difficulty}")
+def get_ny_puzzle(difficulty: NYDiffEnum):
+    """Get the NY Times puzzle given the difficulty from the user."""
+    return parse_nyt_sudoku(f"{NYT_SUDOKU_URL_BASE}{difficulty.value}")
+    
 @sudoku_router.post("/solve")
 def sudoku(request: SudokuGrid):
+
     logger.info("Sudoku solve endpoint called")
     puzzle = request.grid
 
@@ -39,7 +51,6 @@ def sudoku(request: SudokuGrid):
                 "solved": False,
                 "solution": None,
                 "time_seconds": round(elapsed, 6),
-                "solver": "SAT CNF",
                 "error": "No solution exists for this puzzle"
             }
 
@@ -52,7 +63,6 @@ def sudoku(request: SudokuGrid):
             "solved": True,
             "solution": SudokuGrid(grid=solution),
             "time_seconds": round(elapsed, 6),
-            "solver": "SAT== CNF"
         }
         return response_data
         

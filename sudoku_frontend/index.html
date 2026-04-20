@@ -1,0 +1,124 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku SAT Solver</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        // Clear any animation states when page loads or returns from history
+        window.addEventListener('pageshow', (event) => {
+            document.body.classList.remove('page-flip-out');
+            if (event.persisted) {
+                // Page was restored from browser back button
+                document.body.classList.add('page-flip-in');
+                document.body.addEventListener('animationend', () => {
+                    document.body.classList.remove('page-flip-in');
+                }, { once: true });
+            }
+        });
+        // Also clear on initial load
+        document.body.classList.remove('page-flip-out');
+    </script>
+</head>
+<body>
+    <div class="nyt-challenge-banner">
+        <span class="banner-text">Load the the NY Times daily sudoku challenge right now in real time and solve it!— <button id="ny-easy" class="difficulty-link">Easy</button> | <button id="ny-medium" class="difficulty-link">Medium</button> | <button id="ny-hard" class="difficulty-link">Hard</button></span>
+    </div>
+
+    <div class="page-shell">
+        <header class="hero">
+            <div class="hero-copy">
+                <h1>C Sudoku SAT Solver</h1>
+                <p class="hero-text">
+                    Enter a puzzle, spot duplicate-rule conflicts instantly, and let the SAT Solver backend decide whether the board is solvable or UNSAT(Unsolvable).
+                </p>
+            </div>
+            <div class="hero-note">
+                <div class="hero-note-content">
+                    <p class="hero-note-label">Behind The Solver</p>
+                    <h3 class="hero-note-title">Explore the Engine</h3>
+                    <p class="hero-note-desc">Discover how the SAT solver works under the hood</p>
+                </div>
+                <div class="hero-note-icon">→</div>
+            </div>
+        </header>
+
+        <main class="workspace">
+            <section class="board-panel" aria-labelledby="board-title">
+                <div class="panel-head">
+                    <div>
+                        <p class="panel-kicker">9x9 Sudoku Board</p>
+                        <button id="solve-button" class="action-button primary" type="button">Solve</button>
+                        <button id="clear-button" class="action-button danger" type="button">Clear</button>
+                        <button id="sample-button" class="action-button positive" type="button">Play Valid Game</button>
+                        <button id="sample-button-unsat" class="action-button info" type="button">Load Unsolvable Game</button>
+                        <button id="upload-puzzle-button" class="action-button upload-dark" type="button">🖼️ Upload Puzzle</button>
+                    </div>
+                </div>
+
+                <div class="board-frame">
+                    <div id="sudoku-board" class="sudoku-board" role="grid" aria-label="Sudoku board"></div>
+                </div>
+
+            </section>
+
+            <aside class="info-stack">
+                <section class="panel result-panel" aria-labelledby="result-title">
+                    <div class="panel-head compact">
+                        <div>
+                            <p class="panel-kicker">Backend Response</p>
+                            <h2 id="result-title">Latest Solve Result</h2>
+                        </div>
+                    </div>
+                    <div id="result-box" class="result-box is-idle" role="status" aria-live="polite">
+                        <p class="result-state">Enter a puzzle to solve or validate </p>
+                        <p class="result-message">Submit a puzzle to see if it SOLVABLE or UNSOLVABLE, UNSAT, or error details here.</p>
+                        <div class="result-meta" id="result-meta"></div>
+                    </div>
+                </section>
+
+                <section class="panel advisory-panel" aria-labelledby="advisory-title">
+                    <div class="panel-head compact">
+                        <div>
+                            <p class="panel-kicker">Advisory Validation</p>
+                            <h2 id="advisory-title">Rule Conflicts</h2>
+                            <p class="panel-copy">Conflicts are highlighted immediately, but submission stays enabled for structurally valid puzzles.</p>
+                        </div>
+                    </div>
+                    <div id="advisory-banner" class="status-banner status-ok" role="status" aria-live="polite">
+                        No duplicate conflicts detected.
+                    </div>
+                    <ul id="advisory-list" class="message-list"></ul>
+                </section>
+            </aside>
+        </main>
+
+        <div id="welcome-modal" class="welcome-modal">
+            <div class="modal-backdrop"></div>
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button id="modal-close-btn" class="modal-close-btn" type="button">&times;</button>
+                    <h2>Welcome to Sudoku SAT Solver</h2>
+                    <p class="modal-subtitle">Powered by C-based SAT Solving Engine</p>
+                </div>
+                <p class="modal-description">Choose how you'd like to solve a puzzle:</p>
+                <div class="modal-buttons">
+                    <button id="modal-upload-btn" class="modal-button upload-btn" type="button">
+                        <span class="button-icon">📷</span>
+                        <span class="button-text">Upload Image</span>
+                        <span class="button-subtext">Scan a puzzle from a photo, then click solve</span>
+                    </button>
+                    <button id="modal-manual-btn" class="modal-button manual-btn" type="button">
+                        <span class="button-icon">✏️</span>
+                        <span class="button-text">Manual Entry</span>
+                        <span class="button-subtext">Enter puzzle manually, then click solve</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="sudoku.js"></script>
+</body>
+</html>
