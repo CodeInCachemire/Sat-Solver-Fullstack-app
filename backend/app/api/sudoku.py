@@ -3,7 +3,7 @@ import subprocess
 from typing import List
 from fastapi import APIRouter, HTTPException, File, UploadFile
 from backend.app.schemas.sudoku_schema import SudokuGrid, NYDiffEnum
-from backend.app.solvers.sudoku_solver import run_solver
+from backend.app.solvers.sudoku_solver import run_solver_sudoku
 from backend.app.utils.sudoku_helper import decode_solution, encode_sudoku, propagate
 from backend.app.core.constants import NYT_SUDOKU_URL_BASE
 from backend.app.utils.sudoku_ny import parse_nyt_sudoku
@@ -42,27 +42,38 @@ def sudoku(request: SudokuGrid):
         logger.debug(f"CNF formula generated, {len(formula.splitlines())} clauses")
         
         logger.info("Invoking SAT solver with timeout 5s")
-        sat, output_lines, elapsed = run_solver(formula)
-        logger.info(f"SAT solver returned: sat={sat}, elapsed={elapsed:.6f}s")
+        process, runtime  = run_solver_sudoku(formula)
+        if process.returncode == 20:
+            logger.info("Result: UNSAT (no solution)")
+            sat = False
+        elif process.returncode == 10:
+            logger.info(f"Result: SAT (solution found with {len(process.stdout.splitlines())} output lines)")
+            sat = True
+        else:
+            logger.error(f"Unexpected solver return code: {process.returncode}")
+            logger.error(f"stdout: {process.stdout[:200]}")
+            logger.error(f"stderr: {process.stderr[:200]}")
+            raise HTTPException(status_code=500, detail=f"Solver returned unexpected code {process.returncode}")
+        logger.info(f"SAT solver returned: sat={sat}, elapsed={runtime:.6f}s")
         
         if not sat:
             logger.warning("Puzzle is UNSATISFIABLE (no solution exists)")
             return {
                 "solved": False,
                 "solution": None,
-                "time_seconds": round(elapsed, 6),
+                "time_seconds": round(runtime, 6),
                 "error": "No solution exists for this puzzle"
             }
 
         logger.info("Solution found, decoding SAT output")
-        solution = decode_solution(output_lines)
+        solution = decode_solution(process.stdout.splitlines())
         logger.debug(f"Solution decoded successfully")
         
         logger.info("Sudoku solved successfully")
         response_data = {
             "solved": True,
             "solution": SudokuGrid(grid=solution),
-            "time_seconds": round(elapsed, 6),
+            "time_seconds": round(runtime, 6),
         }
         return response_data
         

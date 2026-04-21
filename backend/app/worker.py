@@ -2,13 +2,17 @@ import logging
 import signal
 import subprocess
 import time
-from typing import Optional
+import json
+from typing import Optional, List
 
+from backend.app.schemas.sudoku_schema import SudokuGrid
 from backend.app.services.queue_service import QueueService
 from backend.app.services.database_service import DatabaseService
 from backend.app.core.constants import TIMEOUT_S_SAT, TIMEOUT_S_SUDOKU, JobStatus, SolverMode
 from backend.app.solvers.satsolver import run_solver, parse_solver_output
 from backend.app.core.constants import SolverExitCodes
+from backend.app.solvers.sudoku_solver import run_solver_sudoku
+from backend.app.utils.sudoku_helper import decode_solution, encode_sudoku, propagate
 
 logger = logging.getLogger(__name__)
 
@@ -70,20 +74,28 @@ class Worker:
             self.db.update_run_status(run_id, JobStatus.PROCESSING)
             
             formula = payload["formula"]
-            formula_id = payload["formula_id"]
+            formula_id = payload.get("formula_id")
             mode = payload["mode"]
             if mode == SolverMode.CNF_SUDOKU:
                 timeout_s = TIMEOUT_S_SUDOKU
+                # Parse puzzle grid from JSON string if needed
+                if isinstance(formula, str):
+                    try:
+                        puzzle_grid = json.loads(formula)
+                    except (json.JSONDecodeError, ValueError):
+                        # If not JSON, assume it's already a list
+                        puzzle_grid = formula
+                else:
+                    puzzle_grid = formula
+                process, runtime_s = sudoku_helper(puzzle_grid)
             else: 
                 timeout_s = TIMEOUT_S_SAT
-            
-            # Run the solver
-            process, runtime_s = run_solver(
+                process, runtime_s = run_solver(
                 formula=formula, 
                 run_id=run_id, 
                 formula_id=formula_id, 
                 timeout_s=timeout_s
-            )
+                )
             
             # Extract process results
             rc = process.returncode
@@ -110,7 +122,14 @@ class Worker:
                 
             elif rc in {SolverExitCodes.SAT, SolverExitCodes.UNSAT}:
                 # SAT/UNSAT - parse and store result
-                result, assignment = parse_solver_output(stdout)
+                if mode == SolverMode.CNF_SUDOKU:
+                    if rc == 10:
+                        result = "SAT"
+                    elif rc == 20:
+                        result = "UNSAT"
+                    assignment = decode_solution(stdout.splitlines())
+                elif mode == "RPN":
+                    result, assignment = parse_solver_output(stdout)
                 self.db.insert_result(
                     run_id=run_id,
                     result=result,
@@ -206,3 +225,27 @@ class Worker:
                     self.queue.fail(run_id, reason=str(e))
                 except Exception:
                     logger.exception("Failed queue cleanup run_id=%s", run_id)
+
+def sudoku_helper(puzzle: List[List[int]]):
+    """Helper to solve sudoku: propagate -> encode -> solve -> decode"""
+    logger.debug("Input Sudoku puzzle received")
+    
+    try:
+        logger.info("Starting propagation (constraint propagation)")
+        puzzle = propagate(puzzle)
+        logger.debug("Propagation complete")
+        
+        logger.info("Encoding Sudoku to CNF formula")
+        formula = encode_sudoku(puzzle)
+        logger.debug(f"CNF formula generated, {len(formula.splitlines())} clauses")
+        
+        logger.info("Invoking SAT solver")
+        process, runtime_s = run_solver_sudoku(formula, timeout_s=TIMEOUT_S_SUDOKU)
+        logger.info(f"SAT solver returned: rc={process.returncode}, elapsed={runtime_s:.6f}s")
+        
+        return process, runtime_s
+    except Exception as e:
+        logger.exception("Error in sudoku_helper")
+        raise
+
+        

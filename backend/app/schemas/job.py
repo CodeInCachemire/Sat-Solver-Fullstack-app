@@ -1,4 +1,4 @@
-from typing import Optional, Dict
+from typing import Optional, Dict, List, Union
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -70,9 +70,9 @@ class JobSubmitResponse(BaseModel):
     status: str
 
 class JobSubmitRequest(BaseModel):
-    formula: str = Field(..., description="Formula in RPN notation", min_length=1)
-    notation: str = Field(default="RPN", description="Notation format")
-    mode: str = Field(default="RPN", description="Solver mode")
+    formula: str = Field(..., description="Formula in RPN notation or sudoku grid as JSON string", min_length=1)
+    notation: str = Field(default="RPN", description="Notation format (RPN for formulas, ignored for sudoku)")
+    mode: str = Field(default="RPN", description="Solver mode (RPN, CNF, or CNF_SUDOKU)")
 
 class StatusSchema(BaseModel):
     msg: str
@@ -86,7 +86,7 @@ class SolverResult(BaseModel):
     formula_id : int 
     formula : str
     result : str
-    assignment : Optional[Dict[str,bool]]
+    assignment : Optional[Union[Dict[str, bool], List[List[int]]]]
     runtime : float
 
     

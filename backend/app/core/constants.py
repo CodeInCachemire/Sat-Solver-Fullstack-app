@@ -9,7 +9,7 @@ class JobStatus:
     RETRYING = "RETRYING"
 
 class SolverMode:
-    CNF_SUDOKU = "CNF_SUDOKU"
+    CNF_SUDOKU: str = "CNF_SUDOKU"
     
 class SolverExitCodes:
     SAT = 10
