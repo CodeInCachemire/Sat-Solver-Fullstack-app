@@ -35,7 +35,7 @@ class JobService:
         Return: JobSubmitSchema
         """
         try:
-            normalized_rpn, normalized_hash = normalize_and_hash(formula_raw, "RPN")
+            normalized_rpn, normalized_hash = normalize_and_hash(formula_raw, "RPN", mode)
             logger.debug(f"Normalized_rpn: {normalized_rpn} and normalized_hash {normalized_hash}")
         except ValueError as e:
             logger.error(f"Formula entered needs to be checked.")
@@ -43,36 +43,38 @@ class JobService:
             status_code=400,
             detail= "Re check your input as it may be wrong, error is: " + str(e)
             )
-        #Check if formula already exists, if it does not then you get a new formula_id, uses UPSERT.
         formula_id = self.db.get_or_create_formula(normalized_rpn, normalized_hash, notation)
         logger.debug(f"For formula_id{formula_id}, formula has been checked or created.")
         
-        # First check for completed runs (cached results)
-        completed_job = self.db.get_completed_run(formula_id)
-        if completed_job:
-            existing_run_id, status = completed_job
-            logger.info(f"Cached result found for formula_id {formula_id}, run_id is {existing_run_id}")
-            return JobSubmitResponse(
-                msg = "Cached result found. Returning existing run_id.",
-                formula = normalized_rpn,
-                formula_id = formula_id,
-                run_id = existing_run_id,
-                status = status             
-            )
+        # For sudoku, always create a new run (no caching/dedup)
+        if mode != SolverMode.CNF_SUDOKU:
+            # First check for completed runs (cached results)
+            completed_job = self.db.get_completed_run(formula_id)
+            if completed_job:
+                existing_run_id, status = completed_job
+                logger.info(f"Cached result found for formula_id {formula_id}, run_id is {existing_run_id}")
+                return JobSubmitResponse(
+                    msg = "Cached result found. Returning existing run_id.",
+                    formula = normalized_rpn,
+                    formula_id = formula_id,
+                    run_id = existing_run_id,
+                    status = status             
+                )
+            
+            # Then check if there are already pending/processing jobs against said formula
+            pending_job = self.db.get_active_run(formula_id)
+            if pending_job:
+                existing_run_id, status = pending_job
+                logger.info(f"Run pending against formula_id{formula_id}, run_id is {existing_run_id}")
+                logger.info(f"Returning run_id:{existing_run_id}")
+                return JobSubmitResponse(
+                    msg = "A run already exists for said formula, run_id is returned.",
+                    formula = normalized_rpn,
+                    formula_id = formula_id,
+                    run_id = existing_run_id,
+                    status =  status             
+                )
         
-        # Then check if there are already pending/processing jobs against said formula
-        pending_job = self.db.get_active_run(formula_id)
-        if pending_job:
-            existing_run_id, status = pending_job
-            logger.info(f"Run pending against formula_id{formula_id}, run_id is {existing_run_id}")
-            logger.info(f"Returning run_id:{existing_run_id}")
-            return JobSubmitResponse(
-                msg = "A run already exists for said formula, run_id is returned.",
-                formula = normalized_rpn,
-                formula_id = formula_id,
-                run_id = existing_run_id,
-                status =  status             
-            )
         new_run_id = None
         timeout_s = 5
         if mode == SolverMode.CNF_SUDOKU:
@@ -81,6 +83,7 @@ class JobService:
         else:
             new_run_id = self.db.create_run(formula_id, mode, TIMEOUT_S_SAT)
             timeout_s =  TIMEOUT_S_SAT
+        logger.info(f"For formula_id{formula_id} run_id {new_run_id} has been created.")
         payload = {
             "formula" : normalized_rpn,
             "run_id": new_run_id,
@@ -154,6 +157,17 @@ class JobService:
             )
             
         formula = self.db.get_formula_by_id(run["formula_id"])
+        
+        # Handle assignment: could be JSON string (RPN) or already parsed (sudoku)
+        assignment = None
+        if result["assignment"]:
+            if isinstance(result["assignment"], str):
+                # RPN formula result - parse JSON string
+                assignment = json.loads(result["assignment"])
+            else:
+                # Sudoku result - already parsed (list)
+                assignment = result["assignment"]
+        
         return SolverResult(
             msg="Here is the result for your run_id.",
             status=run["status"],
@@ -161,6 +175,6 @@ class JobService:
             formula_id=run["formula_id"],
             formula=formula,
             result=result["result"],
-            assignment=json.loads(result["assignment"]) if result["assignment"] else None,
+            assignment=assignment,
             runtime=result["runtime_s"]
         )

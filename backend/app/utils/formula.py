@@ -1,13 +1,15 @@
 import hashlib
-from backend.app.core.constants import ALLOWED_OPERATORS
+from backend.app.core.constants import ALLOWED_OPERATORS, SolverMode
 from fastapi import HTTPException
-def normalize_and_hash(formula_raw: str, notation: str) -> tuple[str, str]:
+def normalize_and_hash(formula_raw: str, notation: str, mode: str) -> tuple[str, str]:
     #notation is not RPN
     validate_formula(formula_raw)
     if notation != "RPN":
         raise ValueError(f"RPN notations has not been used. Notation:{notation}")
-    normalized_rpn = normalize_rpn(formula_raw)
-    
+    if mode == "RPN":
+        normalized_rpn = normalize_rpn(formula_raw)
+    elif mode == SolverMode.CNF_SUDOKU:
+        normalized_rpn = formula_raw
     #so now we should have normalized rpn and we can hash it
     hash_input = f"{notation}:{normalized_rpn}"
     hashed_value = hashlib.sha256(hash_input.encode("utf-8")).hexdigest()

@@ -12,7 +12,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def run_solver(formula: str, timeout_s: int = 5) -> Tuple[bool, List[str], float]:
+def run_solver_sudoku(formula: str, timeout_s: int = 15) -> Tuple[subprocess.CompletedProcess, float]:
     """Execute the CNF solver on the formula.
     
     Args:
@@ -43,22 +43,7 @@ def run_solver(formula: str, timeout_s: int = 5) -> Tuple[bool, List[str], float
         end = time.perf_counter()
         runtime = end - start
         logger.info(f"Solver completed in {runtime:.6f}s with return code {process.returncode}")
-        
-        # Return codes: 10 SAT, 20 UNSAT
-        if process.returncode == 20:
-            logger.info("Result: UNSAT (no solution)")
-            return (False, process.stdout.splitlines(), runtime)
-
-        if process.returncode == 10:
-            logger.info(f"Result: SAT (solution found with {len(process.stdout.splitlines())} output lines)")
-            return (True, process.stdout.splitlines(), runtime)
-        
-        # Unexpected return code
-        logger.error(f"Unexpected solver return code: {process.returncode}")
-        logger.error(f"stdout: {process.stdout[:200]}")
-        logger.error(f"stderr: {process.stderr[:200]}")
-        raise RuntimeError(f"Solver returned unexpected code {process.returncode}")
-        
+        return process, runtime        
     except subprocess.TimeoutExpired as e:
         logger.error(f"Solver timed out after {timeout_s}s")
         raise
