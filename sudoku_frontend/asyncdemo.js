@@ -706,7 +706,7 @@
         function renderActivityLog() {
             const listEl = document.getElementById('activity-list');
 
-            listEl.innerHTML = state.activities.slice(0, 10).map((activity, idx) => {
+            listEl.innerHTML = state.activities.map((activity, idx) => {
                 let msgClass = '';
                 if (activity.message.includes('submitted')) msgClass = 'submitted';
                 else if (activity.message.includes('PROCESSING')) msgClass = 'started';

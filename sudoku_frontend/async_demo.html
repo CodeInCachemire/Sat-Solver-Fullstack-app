@@ -22,50 +22,45 @@
         </div>
 
         <div class="demo-content">
-            <!-- Puzzle Wall: 8 mini boards in 4x2 grid -->
-            <div class="puzzle-wall" id="puzzle-wall"></div>
-
-            <!-- System Panels: Queue, Workers, Activity Log -->
-            <div class="system-panels" id="system-panels">
-                <!-- Queue Stats -->
-                <div class="system-panel">
-                    <div class="system-panel-header">
-                        <h3 class="system-panel-title">Queue Status</h3>
-                    </div>
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
-                        <div>
-                            <p class="system-panel-label">Queued</p>
-                            <p class="stat-value" id="queue-count">0</p>
-                        </div>
-                        <div>
-                            <p class="system-panel-label">Running</p>
-                            <p class="stat-value" id="running-count">0</p>
-                        </div>
-                    </div>
-                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(31, 26, 19, 0.06);">
-                        <p class="system-panel-label">Completed</p>
-                        <p class="stat-value" id="completed-count">0</p>
-                    </div>
+            <!-- Queue Status: Horizontal bar -->
+            <div class="queue-status-bar">
+                <div class="queue-stat-item">
+                    <p class="queue-stat-label">Queued</p>
+                    <p class="queue-stat-value" id="queue-count">0</p>
                 </div>
-
-                <!-- Worker Pool -->
-                <div class="system-panel">
-                    <div class="system-panel-header">
-                        <h3 class="system-panel-title">Worker Pool</h3>
-                    </div>
-                    <div class="worker-list" id="worker-list"></div>
+                <div class="queue-stat-item">
+                    <p class="queue-stat-label">Running</p>
+                    <p class="queue-stat-value" id="running-count">0</p>
+                </div>
+                <div class="queue-stat-item">
+                    <p class="queue-stat-label">Completed</p>
+                    <p class="queue-stat-value" id="completed-count">0</p>
                 </div>
             </div>
 
-            <!-- Activity Log -->
-            <div class="activity-log">
-                <div class="activity-log-header">
-                    <h3 class="activity-log-title">Activity Feed</h3>
+            <!-- Puzzle Wall: 8 mini boards in 4x2 grid -->
+            <div class="puzzle-wall" id="puzzle-wall"></div>
+
+            <!-- System Panels: Job Tracking and Activity Log -->
+            <div class="system-panels" id="system-panels">
+                <!-- Job Tracking -->
+                <div class="system-panel">
+                    <div class="system-panel-header">
+                        <h3 class="system-panel-title">Job Tracking</h3>
+                    </div>
+                    <div class="worker-list" id="worker-list"></div>
                 </div>
-                <div class="activity-list" id="activity-list">
-                    <div class="activity-item">
-                        <span class="activity-time">Ready</span>
-                        <span class="activity-msg">System ready for demo</span>
+
+                <!-- Activity Log -->
+                <div class="system-panel activity-log-panel">
+                    <div class="system-panel-header">
+                        <h3 class="system-panel-title">Activity Feed</h3>
+                    </div>
+                    <div class="activity-list" id="activity-list">
+                        <div class="activity-item">
+                            <span class="activity-time">Ready</span>
+                            <span class="activity-msg">System ready for demo</span>
+                        </div>
                     </div>
                 </div>
             </div>

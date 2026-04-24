@@ -32,6 +32,37 @@
             gap: 1.5rem;
         }
         
+        .queue-status-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            background: var(--surface);
+            border: 1px solid rgba(31, 26, 19, 0.08);
+            border-radius: var(--radius-lg);
+            padding: 1.2rem 1rem;
+        }
+        
+        .queue-stat-item {
+            text-align: center;
+        }
+        
+        .queue-stat-label {
+            margin: 0 0 0.4rem;
+            font-size: 0.8rem;
+            color: var(--muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        
+        .queue-stat-value {
+            margin: 0;
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: var(--ink);
+            font-family: "Avenir Next Condensed", "Franklin Gothic Medium", "Trebuchet MS", sans-serif;
+        }
+        
         .puzzle-wall {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -237,6 +268,7 @@
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 1rem;
+            align-items: stretch;
         }
         
         .system-panel {
@@ -370,7 +402,7 @@
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
-            max-height: 12rem;
+            max-height: 25.5rem;
             overflow-y: auto;
         }
         
@@ -426,6 +458,11 @@
             font-weight: 600;
         }
         
+        .activity-msg.failed {
+            color: var(--warn);
+            font-weight: 600;
+        }
+        
         @media (max-width: 1200px) {
             .puzzle-wall {
                 grid-template-columns: repeat(3, 1fr);
@@ -436,19 +473,23 @@
                 padding: 0.6rem;
                 gap: 0.4rem;
             }
+            
+            .queue-status-bar {
+                grid-template-columns: repeat(3, 1fr);
+            }
         }
         
         @media (max-width: 980px) {
-            .system-panels {
-                grid-template-columns: 1fr;
-            }
-            
             .demo-content {
                 gap: 1.2rem;
             }
         }
         
         @media (max-width: 768px) {
+            .system-panels {
+                grid-template-columns: 1fr;
+            }
+            
             .puzzle-wall {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 0.6rem;
@@ -465,6 +506,10 @@
             .action-button {
                 padding: 0.7rem 0.95rem;
                 font-size: 0.95rem;
+            }
+            
+            .queue-status-bar {
+                grid-template-columns: repeat(3, 1fr);
             }
         }
         
@@ -486,6 +531,30 @@
                 font-size: 0.55rem;
             }
             
+            .queue-status-bar {
+                grid-template-columns: 1fr;
+                gap: 0.8rem;
+                padding: 0.9rem;
+            }
+            
+            .queue-stat-item {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                text-align: left;
+            }
+            
+            .queue-stat-label {
+                margin: 0;
+                flex: 1;
+            }
+            
+            .queue-stat-value {
+                font-size: 1.8rem;
+                flex: 1;
+                text-align: right;
+            }
+            
             .demo-title {
                 font-size: 1.5rem;
             }
@@ -496,5 +565,9 @@
             
             .system-panel {
                 padding: 0.9rem;
+            }
+            
+            .system-panels {
+                grid-template-columns: 1fr;
             }
         }
