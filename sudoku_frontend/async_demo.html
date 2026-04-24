@@ -10,14 +10,15 @@
 <body>
     <div class="page-shell">
         <div class="demo-header">
-            <h1 class="demo-title"> Sudoku Distributed Job Solving</h1>
+            <h1 class="demo-title">Distributed Sudoku Solver Pipeline</h1>
             <p class="demo-subtitle">
-                Visualize how puzzles flow through the async queue system, workers pick them up, and solve them in parallel.
+                Experience real-time distributed solving with Redis job queue orchestration. Submit multiple puzzles and watch as worker nodes claim, process, and solve them in parallel with millisecond precision.
             </p>
             <div class="demo-controls">
                 <button id="demo-run-btn" class="action-button primary" type="button">Run Distributed Demo</button>
                 <button id="load-default-btn" class="action-button positive" type="button">Load Default Puzzles</button>
                 <button id="demo-reset-btn" class="action-button secondary" type="button">Reset</button>
+                <span style="color: #e74c3c; display: inline-block; margin-left: 20px; font-size: 14px; max-width: 600px; word-wrap: break-word; white-space: normal;"> Avg solve: 0.04s per puzzle on fast solver. Pipeline uses a much slower version of the C sat solver to allow for better visualization, see puzzle 8 from default puzzles.</span>
             </div>
         </div>
 

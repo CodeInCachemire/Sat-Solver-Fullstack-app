@@ -125,7 +125,7 @@ class DatabaseService:
         stderr: str,
         error_type: Optional[str],
         error_message: Optional[str],
-        runtime_s: int
+        runtime_s: float
     ) -> None:
         """Store solver execution result."""
         conn = self.get_conn()

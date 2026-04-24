@@ -136,7 +136,8 @@
                 result: null,
                 errorMessage: null,
                 pollStartedAt: null,
-                submittedAt: null
+                submittedAt: null,
+                runtime: null  // Execution time in seconds from backend
             }));
         }
 
@@ -325,7 +326,7 @@
                 // Check if result is UNSAT (unsolvable)
                 if (data.result === 'UNSAT') {
                     puzzle.status = 'failed';
-                    puzzle.errorMessage = 'UNSAT (unsolvable puzzle)';
+                    puzzle.errorMessage = 'UNSAT (unsolvable)';
                     addActivity(`Puzzle ${puzzleId} UNSAT (no solution exists)`);
                     renderPuzzleWall();
                     updateStats();
@@ -341,6 +342,7 @@
                         puzzle.solutionGrid = solvedGrid;
                         puzzle.status = 'finished';
                         puzzle.result = data;
+                        puzzle.runtime = data.runtime;  // Capture runtime from backend
                         
                         // Populate the board with solved values
                         populateSolvedBoard(puzzleId, solvedGrid);
@@ -420,6 +422,7 @@
                 puzzle.errorMessage = null;
                 puzzle.pollStartedAt = null;
                 puzzle.submittedAt = null;
+                puzzle.runtime = null;
             });
 
             document.getElementById('demo-run-btn').disabled = false;
@@ -470,7 +473,8 @@
                     // Update run ID label and submission time
                     const workerLabel = card.querySelector('.puzzle-worker');
                     const timeLabel = card.querySelector('.puzzle-time');
-                    workerLabel.textContent = puzzle.runId ? `ID: ${puzzle.runId.substring(0, 8)}...` : '';
+                    const runtimeStr = puzzle.runtime ? ` | Runtime: ${puzzle.runtime.toFixed(3)}s` : '';
+                    workerLabel.textContent = puzzle.runId ? `ID: ${puzzle.runId}${runtimeStr}` : '';
                     timeLabel.textContent = puzzle.submittedAt ? puzzle.submittedAt : '';
                     
                     // Ensure failed/finished puzzles show their submitted grid
@@ -669,13 +673,13 @@
             listEl.innerHTML = activeRuns.map(puzzle => {
                 const statusClass = puzzle.status === 'failed' ? 'failed' : puzzle.status === 'finished' ? 'completed' : 'active';
                 const statusText = puzzle.backendStatus || puzzle.status;
-                const runIdShort = String(puzzle.runId).substring(0, 8);
+                const runtimeStr = puzzle.runtime ? ` | ${puzzle.runtime.toFixed(3)}s` : '';
                 
                 return `
                     <div class="worker-item">
                         <span class="worker-name">Puzzle ${puzzle.id}</span>
                         <div style="display: flex; gap: 0.5rem; align-items: center; font-size: 0.85rem;">
-                            <span style="color: var(--muted);">${runIdShort}...</span>
+                            <span style="color: var(--muted);">${puzzle.runId}${runtimeStr}</span>
                             <span class="worker-status ${statusClass}">
                                 <span class="worker-dot ${statusClass}"></span>
                                 ${statusText}

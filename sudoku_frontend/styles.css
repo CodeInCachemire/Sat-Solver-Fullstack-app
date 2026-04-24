@@ -338,6 +338,7 @@ input {
     font-weight: 700;
     cursor: pointer;
     transition: transform 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
+    flex-shrink: 0;
 }
 
 .action-button:hover {
