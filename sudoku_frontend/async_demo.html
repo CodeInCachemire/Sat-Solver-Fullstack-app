@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distributed Solver Demo</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="newstyle.css">
+</head>
+<body>
+    <div class="page-shell">
+        <div class="demo-header">
+            <h1 class="demo-title"> Sudoku Distributed Job Solving</h1>
+            <p class="demo-subtitle">
+                Visualize how puzzles flow through the async queue system, workers pick them up, and solve them in parallel.
+            </p>
+            <div class="demo-controls">
+                <button id="demo-run-btn" class="action-button primary" type="button">Run Distributed Demo</button>
+                <button id="load-default-btn" class="action-button positive" type="button">Load Default Puzzles</button>
+                <button id="demo-reset-btn" class="action-button secondary" type="button">Reset</button>
+            </div>
+        </div>
+
+        <div class="demo-content">
+            <!-- Puzzle Wall: 8 mini boards in 4x2 grid -->
+            <div class="puzzle-wall" id="puzzle-wall"></div>
+
+            <!-- System Panels: Queue, Workers, Activity Log -->
+            <div class="system-panels" id="system-panels">
+                <!-- Queue Stats -->
+                <div class="system-panel">
+                    <div class="system-panel-header">
+                        <h3 class="system-panel-title">Queue Status</h3>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                        <div>
+                            <p class="system-panel-label">Queued</p>
+                            <p class="stat-value" id="queue-count">0</p>
+                        </div>
+                        <div>
+                            <p class="system-panel-label">Running</p>
+                            <p class="stat-value" id="running-count">0</p>
+                        </div>
+                    </div>
+                    <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(31, 26, 19, 0.06);">
+                        <p class="system-panel-label">Completed</p>
+                        <p class="stat-value" id="completed-count">0</p>
+                    </div>
+                </div>
+
+                <!-- Worker Pool -->
+                <div class="system-panel">
+                    <div class="system-panel-header">
+                        <h3 class="system-panel-title">Worker Pool</h3>
+                    </div>
+                    <div class="worker-list" id="worker-list"></div>
+                </div>
+            </div>
+
+            <!-- Activity Log -->
+            <div class="activity-log">
+                <div class="activity-log-header">
+                    <h3 class="activity-log-title">Activity Feed</h3>
+                </div>
+                <div class="activity-list" id="activity-list">
+                    <div class="activity-item">
+                        <span class="activity-time">Ready</span>
+                        <span class="activity-msg">System ready for demo</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="asyncdemo.js"></script>
+</body>
+</html>
