@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,9 +22,13 @@
         document.body.classList.remove('page-flip-out');
     </script>
 </head>
+
 <body>
     <div class="nyt-challenge-banner">
-        <span class="banner-text">Load the the NY Times daily sudoku challenge right now in real time and solve it!— <button id="ny-easy" class="difficulty-link">Easy</button> | <button id="ny-medium" class="difficulty-link">Medium</button> | <button id="ny-hard" class="difficulty-link">Hard</button></span>
+        <span class="banner-text">Load the the NY Times daily sudoku challenge right now in real time and solve it!—
+            <button id="ny-easy" class="difficulty-link">Easy</button> | <button id="ny-medium"
+                class="difficulty-link">Medium</button> | <button id="ny-hard"
+                class="difficulty-link">Hard</button></span>
     </div>
 
     <div class="page-shell">
@@ -31,7 +36,8 @@
             <div class="hero-copy">
                 <h1>C Sudoku SAT Solver</h1>
                 <p class="hero-text">
-                    Enter a puzzle, spot duplicate-rule conflicts instantly, and let the SAT Solver backend decide whether the board is solvable or UNSAT(Unsolvable).
+                    Enter a puzzle, spot duplicate-rule conflicts instantly, and let the SAT Solver backend decide
+                    whether the board is solvable or UNSAT(Unsolvable).
                 </p>
             </div>
             <div class="hero-note">
@@ -52,8 +58,10 @@
                         <button id="solve-button" class="action-button primary" type="button">Solve</button>
                         <button id="clear-button" class="action-button danger" type="button">Clear</button>
                         <button id="sample-button" class="action-button positive" type="button">Play Valid Game</button>
-                        <button id="sample-button-unsat" class="action-button info" type="button">Load Unsolvable Game</button>
-                        <button id="upload-puzzle-button" class="action-button upload-dark" type="button">🖼️ Upload Puzzle</button>
+                        <button id="sample-button-unsat" class="action-button info" type="button">Create Unsolvable
+                            Game</button>
+                        <button id="upload-puzzle-button" class="action-button upload-dark" type="button">🖼️ Upload
+                            Puzzle</button>
                     </div>
                 </div>
 
@@ -64,6 +72,10 @@
             </section>
 
             <aside class="info-stack">
+                <a href="async_demo.html" class="solver-steroids-btn">
+                    !!! CHECK THIS SOLVER ON STEROIDS !!!
+                </a>
+
                 <section class="panel result-panel" aria-labelledby="result-title">
                     <div class="panel-head compact">
                         <div>
@@ -73,7 +85,8 @@
                     </div>
                     <div id="result-box" class="result-box is-idle" role="status" aria-live="polite">
                         <p class="result-state">Enter a puzzle to solve or validate </p>
-                        <p class="result-message">Submit a puzzle to see if it SOLVABLE or UNSOLVABLE, UNSAT, or error details here.</p>
+                        <p class="result-message">Submit a puzzle to see if it SOLVABLE, UNSOLVABLE or error
+                            details here.</p>
                         <div class="result-meta" id="result-meta"></div>
                     </div>
                 </section>
@@ -83,7 +96,8 @@
                         <div>
                             <p class="panel-kicker">Advisory Validation</p>
                             <h2 id="advisory-title">Rule Conflicts</h2>
-                            <p class="panel-copy">Conflicts are highlighted immediately, but submission stays enabled for structurally valid puzzles.</p>
+                            <p class="panel-copy">Conflicts are highlighted immediately, but submission stays enabled
+                                for structurally valid puzzles.</p>
                         </div>
                     </div>
                     <div id="advisory-banner" class="status-banner status-ok" role="status" aria-live="polite">
@@ -106,8 +120,8 @@
                 <div class="modal-buttons">
                     <button id="modal-upload-btn" class="modal-button upload-btn" type="button">
                         <span class="button-icon">📷</span>
-                        <span class="button-text">Upload Image</span>
-                        <span class="button-subtext">Scan a puzzle from a photo, then click solve</span>
+                        <span class="button-text">Upload Image via AI</span>
+                        <span class="button-subtext">Scan a puzzle from a photo, via gemini-3.1</span>
                     </button>
                     <button id="modal-manual-btn" class="modal-button manual-btn" type="button">
                         <span class="button-icon">✏️</span>
@@ -117,8 +131,17 @@
                 </div>
             </div>
         </div>
+
+        <div id="loading-modal" class="loading-modal">
+            <div class="modal-backdrop"></div>
+            <div class="loading-content">
+                <div class="spinner"></div>
+                <p class="loading-text">Loading image and extracting via Gemini 2.5 Flash Lite. <br>Accuracy may vary, please correct any red cells(conflicts) by deleting them.</p>
+            </div>
+        </div>
     </div>
 
     <script src="sudoku.js"></script>
 </body>
+
 </html>

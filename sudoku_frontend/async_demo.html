@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,18 +8,26 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="newstyle.css">
 </head>
+
 <body>
     <div class="page-shell">
         <div class="demo-header">
-            <h1 class="demo-title">Distributed Sudoku Solver Pipeline</h1>
+            <h1 class="demo-title">Sudoku Solving via Distributed Job Queue</h1>
             <p class="demo-subtitle">
-                Experience real-time distributed solving with Redis job queue orchestration. Submit multiple puzzles and watch as worker nodes claim, process, and solve them in parallel with millisecond precision.
+                Experience real-time distributed solving with Redis job queue orchestration. Submit multiple puzzles and
+                watch as worker nodes claim, process, and solve them in parallel with millisecond precision.
+                <span style="color: #000000;"><strong>Enter your own Sudokus or load default.</strong></span>
+                <span style="color: #2f00ff;"><strong>Scroll down to check Puzzle Tracking and Logs.</strong></span>
             </p>
             <div class="demo-controls">
-                <button id="demo-run-btn" class="action-button primary" type="button">Run Distributed Demo</button>
-                <button id="load-default-btn" class="action-button positive" type="button">Load Default Puzzles</button>
+                <button id="demo-run-btn" class="action-button primary" type="button">Solve all Sudokus!</button>
+                <button id="load-default-btn" class="action-button positive" type="button">Load Default Sudokus</button>
                 <button id="demo-reset-btn" class="action-button secondary" type="button">Reset</button>
-                <span style="color: #e74c3c; display: inline-block; margin-left: 20px; font-size: 14px; max-width: 600px; word-wrap: break-word; white-space: normal;"> Avg solve: 0.04s per puzzle on fast solver. Pipeline uses a much slower version of the C sat solver to allow for better visualization, see puzzle 8 from default puzzles.</span>
+                <span
+                    style="color: #e74c3c; display: inline-block; margin-left: 20px; font-size: 16px; max-width: 600px; word-wrap: break-word; white-space: normal;">
+                    Avg solve: 0.01-0.03s per puzzle on fast solver. Pipeline uses a much slower version of the C sat
+                    solver for better visualization, see puzzle 8 from default puzzles.
+                </span>
             </div>
         </div>
 
@@ -69,4 +78,5 @@
     </div>
     <script src="asyncdemo.js"></script>
 </body>
+
 </html>
