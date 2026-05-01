@@ -64,6 +64,7 @@
     const nyEasy = document.getElementById("ny-easy")
     const nyMedium = document.getElementById("ny-medium")
     const nyHard = document.getElementById("ny-hard")
+    const loadingModal = document.getElementById("loading-modal");
     const cellElements = [];
 
     // Create hidden file input for image upload
@@ -74,11 +75,12 @@
     fileInput.style.display = "none";
     document.body.appendChild(fileInput);
 
-    fileInput.addEventListener("change", (e) => {
+    fileInput.addEventListener("change", async (e) => {
         if (e.target.files && e.target.files[0]) {
-            console.log("File selected:", e.target.files[0]);
+            const file = e.target.files[0];
+            console.log("File selected:", file.name, file.type, file.size);
             hideWelcomeModal();
-            // TODO: Implement file upload endpoint later
+            await handleImageUpload(file);
         }
     });
 
@@ -89,7 +91,8 @@
         attachActions();  // This already calls attachModalActions()
         recomputeValidation();
         render();
-        showWelcomeModal();
+        // Note: Welcome modal is now managed by the mode-selection modal flow in HTML
+        // showWelcomeModal() is called after user selects "Single Solver" mode
     }
 
     function buildBoard() {
@@ -364,6 +367,7 @@
         solveButton.disabled = state.isLoading;
         clearButton.disabled = state.isLoading;
         sampleButton.disabled = state.isLoading;
+        uploadPuzzleButton.disabled = state.isLoading;
     }
 
     function renderBoard(displayedGrid) {
@@ -732,11 +736,128 @@
         welcomeModal.classList.add("hidden");
     }
 
+    function showLoadingModal() {
+        if (loadingModal) {
+            loadingModal.classList.add("active");
+        }
+    }
+
+    function hideLoadingModal() {
+        if (loadingModal) {
+            loadingModal.classList.remove("active");
+        }
+    }
+
     function imageUpload(){
-            // Trigger file input
+        // Trigger file input
         const fileInput = document.getElementById("sudoku-file-input");
         if (fileInput) {
-                fileInput.click();
+            fileInput.click();
+        }
+    }
+
+    async function handleImageUpload(file) {
+        /**
+         * Handle image upload: validate file, send to backend, extract puzzle
+         */
+        
+        // Validate file type
+        const allowedTypes = ["image/jpeg", "image/png", "image/jpg"];
+        if (!allowedTypes.includes(file.type)) {
+            setResultState({
+                status: "error",
+                message: `Invalid file type: ${file.type}. Allowed: JPG, JPEG, PNG`,
+                solver: null,
+                timeSeconds: null
+            });
+            render();
+            return;
+        }
+        
+        // Validate file size (max 10MB)
+        const maxSize = 10 * 1024 * 1024;
+        if (file.size > maxSize) {
+            setResultState({
+                status: "error",
+                message: `File too large: ${(file.size / (1024*1024)).toFixed(1)}MB. Maximum: 10MB`,
+                solver: null,
+                timeSeconds: null
+            });
+            render();
+            return;
+        }
+        
+        // Set loading state
+        state.isLoading = true;
+        showLoadingModal();
+        setResultState({
+            status: "loading",
+            message: "Extracting puzzle from image using AI...",
+            solver: null,
+            timeSeconds: null
+        });
+        render();
+        
+        try {
+            // Prepare form data
+            const formData = new FormData();
+            formData.append("file", file);
+            
+            // Send to backend
+            console.log(`Uploading image: ${file.name} (${file.size} bytes)`);
+            const response = await fetch(`${API_BASE}/sudoku/image-upload`, {
+                method: "POST",
+                body: formData
+            });
+            
+            const raw = await readJsonSafely(response);
+            
+            if (!response.ok) {
+                throw new Error(extractErrorMessage(raw, response.status));
+            }
+            
+            // Validate extracted grid
+            if (!raw.grid || !Array.isArray(raw.grid)) {
+                throw new Error("No valid puzzle grid in response");
+            }
+            
+            if (!isValidGrid(raw.grid)) {
+                throw new Error("Extracted puzzle is not a valid 9x9 sudoku grid");
+            }
+            
+            // Load extracted puzzle into board
+            state.userGrid = cloneGrid(raw.grid);
+            state.solutionGrid = null;
+            state.givenMask = createBooleanGrid(false);
+            recomputeValidation();
+            
+            setResultState({
+                status: "idle",
+                message: `Puzzle extracted from "${file.name}". Review and make any corrections, then click Solve! Remove all conflicts.`,
+                solver: null,
+                timeSeconds: null
+            });
+            
+            console.log("Puzzle successfully extracted and loaded");
+            
+        } catch (error) {
+            console.error("Image upload error:", error);
+            setResultState({
+                status: "error",
+                message: error.message || "Failed to extract puzzle from image",
+                solver: null,
+                timeSeconds: null
+            });
+        } finally {
+            state.isLoading = false;
+            hideLoadingModal();
+            render();
+            
+            // Reset file input so same file can be selected again
+            const fileInput = document.getElementById("sudoku-file-input");
+            if (fileInput) {
+                fileInput.value = "";
+            }
         }
     }
 

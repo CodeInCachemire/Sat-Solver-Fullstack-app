@@ -18,6 +18,7 @@
     --radius-xl: 28px;
     --radius-lg: 18px;
     --radius-md: 12px;
+    --layout-gap: 1rem;
 }
 
 * {
@@ -78,7 +79,7 @@ input {
 .hero {
     display: grid;
     grid-template-columns: minmax(0, 1.3fr) minmax(300px, 0.72fr);
-    gap: 1.5rem;
+    gap: var(--layout-gap);
     align-items: flex-start;
     margin-bottom: 1rem;
 }
@@ -206,7 +207,7 @@ input {
 .workspace {
     display: grid;
     grid-template-columns: minmax(0, 1.3fr) minmax(300px, 0.72fr);
-    gap: 1rem;
+    gap: var(--layout-gap);
     align-items: start;
 }
 
@@ -402,6 +403,38 @@ input {
     display: grid;
     gap: 1rem;
 }
+
+.solver-steroids-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.2rem 0.6rem;
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+    color: white;
+    font-weight: 900;
+    font-size: 1.2rem;
+    text-decoration: none;
+    border-radius: 8px;
+    border: 3px solid #a93226;
+    text-align: center;
+    line-height: 1.3;
+    transition: all 300ms ease;
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    word-break: break-word;
+}
+
+.solver-steroids-btn:hover {
+    background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(231, 76, 60, 0.5);
+}
+
+.solver-steroids-btn:active {
+    transform: translateY(-1px);
+}
+
 
 .status-banner {
     border-radius: var(--radius-md);
@@ -684,6 +717,16 @@ input {
     border-color: rgba(47, 106, 79, 0.3);
 }
 
+.modal-button.sync-btn:hover {
+    background: linear-gradient(135deg, rgba(52, 152, 219, 0.1) 0%, rgba(52, 152, 219, 0.05) 100%);
+    border-color: rgba(52, 152, 219, 0.3);
+}
+
+.modal-button.async-btn:hover {
+    background: linear-gradient(135deg, rgba(231, 76, 60, 0.1) 0%, rgba(231, 76, 60, 0.05) 100%);
+    border-color: rgba(231, 76, 60, 0.3);
+}
+
 .modal-close-btn {
     position: absolute;
     top: 1rem;
@@ -709,6 +752,78 @@ input {
 
 .welcome-modal.hidden {
     display: none;
+}
+
+/* Loading Modal Styles */
+.loading-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease;
+}
+
+.loading-modal.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.loading-modal .modal-backdrop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(4px);
+}
+
+.loading-content {
+    position: relative;
+    z-index: 10001;
+    background: var(--surface-strong);
+    border-radius: var(--radius-xl);
+    padding: 3rem 2.5rem;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    min-width: 300px;
+}
+
+.spinner {
+    width: 60px;
+    height: 60px;
+    border: 4px solid rgba(213, 102, 44, 0.2);
+    border-top: 4px solid var(--brand);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-text {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: 0.3px;
 }
 
 /* Page Flip Animation */
