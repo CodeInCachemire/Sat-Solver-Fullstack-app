@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     MAX_FORMULA_LENGTH : int = 300_000
     MAX_TOKENS : int = 85_000
     
+    GEMINI_API_KEY: str | None = None
+    GEMINI_MODEL: str = "gemini-2.5-flash-lite"
+    
     class Config:
         env_file = str(BASE_DIR / ".env.dev")
         env_file_encoding = "utf-8"
