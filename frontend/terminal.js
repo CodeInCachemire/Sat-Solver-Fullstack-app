@@ -36,6 +36,10 @@ function setupEventListeners() {
 
     submitInput.addEventListener('focus', () => focusPanel('left'));
     statusInput.addEventListener('focus', () => focusPanel('right'));
+
+    // Tap panel header on mobile to switch/focus that panel
+    document.querySelector('.left-panel .panel-header').addEventListener('click', () => focusPanel('left'));
+    document.querySelector('.right-panel .panel-header').addEventListener('click', () => focusPanel('right'));
 }
 
 function handleKeydown(e, panel) {
@@ -143,9 +147,31 @@ function showHelp(panel) {
 }
 
 // API Calls
+
+// FastAPI can return detail as a string or as an array of validation error objects
+function serializeDetail(detail) {
+    if (!detail) return null;
+    if (typeof detail === 'string') return detail;
+    if (Array.isArray(detail)) return detail.map(e => e.msg || JSON.stringify(e)).join(', ');
+    return JSON.stringify(detail);
+}
+
+function validateFormula(formula) {
+    if (!/^[A-Za-z0-9\s&|!()~=><]+$/.test(formula)) {
+        return 'Invalid characters in formula. Only letters, digits, spaces, and operators (&&, ||, !, =>, <=>) are allowed.';
+    }
+    return null;
+}
+
 async function submitJob(formula, panel) {
     if (!formula) {
         appendOutput('Error: No formula provided', panel, 'error');
+        return;
+    }
+
+    const validationError = validateFormula(formula);
+    if (validationError) {
+        appendOutput(`Error: ${validationError}`, panel, 'error');
         return;
     }
 
@@ -182,7 +208,7 @@ async function submitJob(formula, panel) {
             let errorMsg = `HTTP ${response.status}`;
             try {
                 const error = await response.json();
-                errorMsg = error.detail || errorMsg;
+                errorMsg = serializeDetail(error.detail) || errorMsg;
             } catch (e) {
                 // Response is not JSON
             }
@@ -209,6 +235,12 @@ async function checkStatus(runId, panel) {
         return;
     }
 
+    if (!/^\d+$/.test(runId)) {
+        appendOutput(`Error: run_id must be a number, got "${runId}"`, panel, 'error');
+        appendOutput('Usage: status <run_id>  (e.g. status 42)', panel, 'muted');
+        return;
+    }
+
     appendOutput(`Checking status for run_id: ${runId}`, panel, 'info');
 
     try {
@@ -218,7 +250,7 @@ async function checkStatus(runId, panel) {
             let errorMsg = `HTTP ${response.status}`;
             try {
                 const error = await response.json();
-                errorMsg = error.detail || errorMsg;
+                errorMsg = serializeDetail(error.detail) || errorMsg;
             } catch (e) {
                 // Response is not JSON
             }
@@ -246,6 +278,12 @@ async function getResult(runId, panel) {
         return;
     }
 
+    if (!/^\d+$/.test(runId)) {
+        appendOutput(`Error: run_id must be a number, got "${runId}"`, panel, 'error');
+        appendOutput('Usage: result <run_id>  (e.g. result 42)', panel, 'muted');
+        return;
+    }
+
     appendOutput(`Fetching result for run_id: ${runId}`, panel, 'info');
 
     try {
@@ -255,7 +293,7 @@ async function getResult(runId, panel) {
             let errorMsg = `HTTP ${response.status}`;
             try {
                 const error = await response.json();
-                errorMsg = error.detail || errorMsg;
+                errorMsg = serializeDetail(error.detail) || errorMsg;
             } catch (e) {
                 // Response is not JSON
             }
