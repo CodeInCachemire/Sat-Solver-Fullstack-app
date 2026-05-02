@@ -3,8 +3,9 @@ FROM node:18-alpine as builder
 
 WORKDIR /app
 
-# Copy frontend files
-COPY frontend ./
+# Copy both frontend directories
+COPY frontend ./frontend
+COPY sudoku_frontend ./sudoku_frontend
 
 # No build step needed for static HTML/CSS/JS
 # Just ensure files are ready
@@ -12,8 +13,9 @@ COPY frontend ./
 # Final stage - nginx
 FROM nginx:alpine
 
-# Copy frontend static files to nginx default location
-COPY --from=builder /app /usr/share/nginx/html
+# Copy both frontend directories to nginx, each in its own path
+COPY --from=builder /app/frontend /usr/share/nginx/html/frontend
+COPY --from=builder /app/sudoku_frontend /usr/share/nginx/html/sudoku_frontend
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf

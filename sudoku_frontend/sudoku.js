@@ -1,5 +1,5 @@
 ﻿(function () {
-    const API_BASE = "http://localhost:8000";
+    const API_BASE = '/api';
     const GRID_SIZE = 9;
     const BOX_SIZE = 3;
     const SAMPLE_PUZZLE = [

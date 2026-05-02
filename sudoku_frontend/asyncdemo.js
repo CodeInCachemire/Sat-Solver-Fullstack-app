@@ -1,6 +1,6 @@
-        // Real backend job queue integration for async Sudoku solving
+// Real backend job queue integration for async Sudoku solving
         
-        const API_BASE = 'http://localhost:8000';
+        const API_BASE = '/api';
         const POLL_INTERVAL_MS = 500;  // Poll status every 500ms
         
         const SAMPLE_PUZZLES = [
@@ -18,7 +18,7 @@
             [
                 [5, 3, 0, 0, 7, 0, 0, 0, 0],
                 [6, 0, 0, 1, 9, 5, 0, 0, 0],
-                [0, 9, 8, 0, 0, 0, 0, 6, 0],
+                [0, 9, 0, 0, 0, 0, 0, 6, 0],
                 [8, 0, 0, 0, 6, 0, 0, 0, 3],
                 [4, 0, 0, 8, 0, 3, 0, 0, 1],
                 [7, 0, 0, 0, 2, 0, 0, 0, 6],
@@ -638,7 +638,7 @@
             const key = `puzzle-${puzzleId}-${row}-${col}`;
             const input = state.cellInputs[key];
             if (input) {
-                input.value = puzzle.grid[row][col] === 0 ? '' : puzzle.grid[row][col];
+                input.value = puzzle.grid[row][col] === 0 ? '' : puzzle.grid[row][c];
             }
         }
 
@@ -725,3 +725,5 @@
                 `;
             }).join('');
         }
+    }
+}
