@@ -21,6 +21,8 @@ services:
       REDIS_HOST: redis
       REDIS_PORT: 6379
       PYTHONUNBUFFERED: 1
+      # Gemini API for image upload
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
     # No health check changes needed
     restart: always
 
