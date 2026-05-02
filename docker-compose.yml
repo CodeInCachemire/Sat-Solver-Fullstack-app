@@ -129,7 +129,7 @@ services:
       context: .
       dockerfile: Dockerfile.frontend
     ports:
-      - "3000:3000"
+      - "80:80"
     depends_on:
       - backend
     networks:
@@ -144,7 +144,7 @@ services:
           "-s",
           "--max-time",
           "5",
-          "http://localhost:3000/"
+          "http://localhost:80/"
         ]
       interval: 30s
       timeout: 10s
