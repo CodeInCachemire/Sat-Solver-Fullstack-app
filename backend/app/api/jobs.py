@@ -1,18 +1,9 @@
 from fastapi import APIRouter, Depends
-from backend.app.core.dependencies import get_db
-from backend.app.services.database_service import DatabaseService
-from backend.app.services.queue_service import QueueService
+from backend.app.core.dependencies import get_job_service
 from backend.app.services.job_service import JobService
-from backend.app.redis.redis_session import get_redis_client
 from backend.app.schemas.job import JobSubmitResponse, JobSubmitRequest, StatusSchema, SolverResult
 
 jobs_router = APIRouter(prefix="/jobs", tags=["async-jobs"])
-
-def get_job_service(db: DatabaseService = Depends(get_db)) -> JobService:
-    """Dependency injection for JobService."""
-    redis_client = get_redis_client()
-    queue_service = QueueService(redis_client)
-    return JobService(db, queue_service)
 
 @jobs_router.post("/submit", response_model=JobSubmitResponse)
 def submit_job(

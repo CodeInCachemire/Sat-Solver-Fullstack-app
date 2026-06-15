@@ -9,6 +9,7 @@ from backend.app.api import health, jobs, sudoku
 from backend.app.sync import sync
 from backend.app.db.session import init_db_pool
 from backend.app.redis.redis_session import init_redis_pool
+from backend.app.core.dependencies import init_queue_service
 
 
 # Custom colored formatter
@@ -62,6 +63,7 @@ async def lifespan(app: FastAPI):
     logger.info("Starting application...")
     init_db_pool()
     init_redis_pool()
+    init_queue_service()
     logger.info("Connection pools initialized")
     
     yield

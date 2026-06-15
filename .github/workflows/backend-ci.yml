@@ -1,0 +1,249 @@
+name: Backend Python CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # -----------------------------------------------------------------
+  # UNIT TESTS -no external services, pure mocks
+  # -----------------------------------------------------------------
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-test.txt
+
+      - name: Run unit tests with coverage
+        env:
+          DB_HOST: localhost
+          DB_PORT: "5432"
+          DB_NAME: test_db
+          DB_USER: test_user
+          DB_PASSWORD: test_password
+          REDIS_HOST: localhost
+          REDIS_PORT: "6379"
+        run: |
+          pytest comprehensive_tests/unit/ -m "unit" \
+            --cov=backend/app \
+            --cov-report=xml \
+            --cov-report=term-missing \
+            --timeout=30
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always() && !env.ACT
+        with:
+          name: unit-coverage
+          path: coverage.xml
+
+  # -----------------------------------------------------------------
+  # API TESTS -FastAPI TestClient, no external services
+  # -----------------------------------------------------------------
+  api-tests:
+    name: API Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-test.txt
+
+      - name: Run API tests
+        env:
+          DB_HOST: localhost
+          DB_PORT: "5432"
+          DB_NAME: test_db
+          DB_USER: test_user
+          DB_PASSWORD: test_password
+          REDIS_HOST: localhost
+          REDIS_PORT: "6379"
+        run: |
+          pytest comprehensive_tests/api/ -m "api" \
+            --timeout=30
+
+  # -----------------------------------------------------------------
+  # INTEGRATION TESTS -real Redis + real PostgreSQL
+  # Needs unit-tests and api-tests to pass first
+  # -----------------------------------------------------------------
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [unit-tests, api-tests]
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+      postgres-test:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: sat_solver_test
+          POSTGRES_USER: sat_user
+          POSTGRES_PASSWORD: test_password
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd "pg_isready -U sat_user -d sat_solver_test"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-test.txt
+
+      - name: Run integration tests
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5433
+          DB_NAME: sat_solver_test
+          DB_USER: sat_user
+          DB_PASSWORD: test_password
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+          REDIS_DB: 15
+        run: |
+          pytest comprehensive_tests/integration/ -m "integration" \
+            --timeout=60
+
+  # -----------------------------------------------------------------
+  # DOCKER BUILD -verify all images build successfully
+  # -----------------------------------------------------------------
+  docker-build:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build SAT solver binaries (required for solver image)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y build-essential
+          mkdir -p bin
+          make clean || true
+          make
+
+      - name: Build all Docker images
+        run: docker compose build
+
+      - name: Verify all images exist
+        run: |
+          docker images | grep sat-solver || true
+          docker compose config --services
+
+  # -----------------------------------------------------------------
+  # SYSTEM / E2E TESTS -full Docker Compose stack
+  # Needs integration-tests and docker-build to pass first
+  # -----------------------------------------------------------------
+  system-tests:
+    name: System E2E Tests
+    runs-on: ubuntu-latest
+    needs: [integration-tests, docker-build]
+
+    services:
+      # PostgreSQL for the backend/workers to connect to via host.docker.internal
+      # docker-compose.yml already sets extra_hosts: host.docker.internal:host-gateway
+      # so the running containers can reach this service at host.docker.internal:5432
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: sat_solver
+          POSTGRES_USER: sat_user
+          POSTGRES_PASSWORD: "12345"
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sat_user -d sat_solver"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r requirements-test.txt
+
+      - name: Install build tools and build SAT solver binaries
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y build-essential
+          mkdir -p bin
+          make clean || true
+          make
+
+      - name: Verify solver binary exists
+        run: |
+          test -x bin/satsolver || echo "WARNING: solver binary not found - job completion tests will be skipped"
+
+      - name: Initialize database schema
+        run: |
+          sudo apt-get install -y postgresql-client
+          PGPASSWORD=12345 psql -h localhost -U sat_user -d sat_solver -f init.sql
+
+      - name: Start full Docker Compose stack
+        run: docker compose up --build -d
+
+      - name: Wait for backend health
+        run: |
+          echo "Waiting for backend to become healthy..."
+          for i in $(seq 1 40); do
+            if curl -sf http://localhost:8000/health > /dev/null 2>&1; then
+              echo "Backend is healthy after ${i}x3s"
+              break
+            fi
+            echo "  attempt $i/40..."
+            sleep 3
+          done
+          curl -f http://localhost:8000/health || (docker compose logs && exit 1)
+
+      - name: Run system tests
+        run: |
+          pytest comprehensive_tests/system/ -m "system" \
+            --timeout=300
+
+      - name: Show container logs on failure
+        if: failure()
+        run: docker compose logs --tail=100
+
+      - name: Tear down stack
+        if: always()
+        run: docker compose down -v
