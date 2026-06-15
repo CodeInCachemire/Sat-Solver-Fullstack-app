@@ -200,6 +200,7 @@
             font-weight: 700;
             color: var(--ink);
             background: rgba(255, 252, 247, 0.92);
+            transition: background-color 0.2s ease, color 0.2s ease;
             appearance: none;
             outline: none;
             padding: 0;
@@ -231,9 +232,15 @@
             font-weight: 800;
         }
         
+        @keyframes cell-reveal {
+            from { opacity: 0.2; }
+            to   { opacity: 1; }
+        }
+
         .mini-cell.solved {
             background: rgba(47, 106, 79, 0.1);
             color: #214635;
+            animation: cell-reveal 0.45s ease forwards;
         }
         
         .mini-cell[data-col="2"],

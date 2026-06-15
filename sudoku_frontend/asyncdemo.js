@@ -385,6 +385,7 @@ function populateSolvedBoard(puzzleId, solvedGrid) {
                 // Mark cells that were filled by solver (not in submitted grid)
                 const wasEmpty = puzzle.submittedGrid[r][c] === 0;
                 if (wasEmpty) {
+                    input.style.animationDelay = `${(r + c) * 25}ms`;
                     input.classList.add('solved');
                 }
             }
@@ -477,15 +478,28 @@ function renderPuzzleWall() {
             workerLabel.textContent = puzzle.runId ? `ID: ${puzzle.runId}${runtimeStr}` : '';
             timeLabel.textContent = puzzle.submittedAt ? puzzle.submittedAt : '';
 
-            // Ensure failed/finished puzzles show their submitted grid
-            if (puzzle.status === 'failed' || puzzle.status === 'finished') {
+            // For failed puzzles, restore the submitted (unsolved) grid
+            if (puzzle.status === 'failed' && puzzle.submittedGrid) {
                 for (let r = 0; r < 9; r++) {
                     for (let c = 0; c < 9; c++) {
                         const key = `puzzle-${puzzle.id}-${r}-${c}`;
                         const input = state.cellInputs[key];
                         if (input) {
-                            // Show submitted grid values
-                            input.value = puzzle.submittedGrid[r][c] === 0 ? '' : puzzle.submittedGrid[r][c];
+                            const expected = puzzle.submittedGrid[r][c] === 0 ? '' : String(puzzle.submittedGrid[r][c]);
+                            if (input.value !== expected) input.value = expected;
+                        }
+                    }
+                }
+            }
+            // For finished puzzles, show the solution grid
+            if (puzzle.status === 'finished' && puzzle.solutionGrid) {
+                for (let r = 0; r < 9; r++) {
+                    for (let c = 0; c < 9; c++) {
+                        const key = `puzzle-${puzzle.id}-${r}-${c}`;
+                        const input = state.cellInputs[key];
+                        if (input) {
+                            const expected = String(puzzle.solutionGrid[r][c]);
+                            if (input.value !== expected) input.value = expected;
                         }
                     }
                 }
