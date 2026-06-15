@@ -28,7 +28,6 @@ sentry_sdk.init(
     environment=settings.SENTRY_ENVIRONMENT,
     traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
     send_default_pii=True,
-    enable_logs=True,
 )
 
 
