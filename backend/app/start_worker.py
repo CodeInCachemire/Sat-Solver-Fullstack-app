@@ -5,7 +5,9 @@ This script initializes and runs a worker that processes solver jobs from the qu
 """
 import logging
 import sys
+import sentry_sdk
 
+from backend.app.core.config import settings
 from backend.app.db.session import init_db_pool, get_connection, release_connection
 from backend.app.redis.redis_session import init_redis_pool, get_redis_client
 from backend.app.services.database_service import DatabaseService
@@ -20,6 +22,14 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
+
+sentry_sdk.init(
+    dsn=settings.SENTRY_DSN,
+    environment=settings.SENTRY_ENVIRONMENT,
+    traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
+    send_default_pii=True,
+    enable_logs=True,
+)
 
 
 def main():

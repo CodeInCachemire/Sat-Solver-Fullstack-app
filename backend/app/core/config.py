@@ -32,6 +32,10 @@ class Settings(BaseSettings):
     
     GEMINI_API_KEY: str | None = None
     GEMINI_MODEL: str = "gemini-2.5-flash-lite"
+
+    SENTRY_DSN: str = ""
+    SENTRY_ENVIRONMENT: str = "production"
+    SENTRY_TRACES_SAMPLE_RATE: float = 1.0
     
     class Config:
         env_file = str(BASE_DIR / ".env.dev")

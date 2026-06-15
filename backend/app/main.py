@@ -2,6 +2,7 @@ from contextlib import asynccontextmanager
 import logging
 import os
 import sys
+import sentry_sdk
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
@@ -10,6 +11,15 @@ from backend.app.sync import sync
 from backend.app.db.session import init_db_pool
 from backend.app.redis.redis_session import init_redis_pool
 from backend.app.core.dependencies import init_queue_service
+from backend.app.core.config import settings
+
+sentry_sdk.init(
+    dsn=settings.SENTRY_DSN,
+    environment=settings.SENTRY_ENVIRONMENT,
+    traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
+    send_default_pii=True,
+    enable_logs=True,
+)
 
 
 # Custom colored formatter

@@ -3,6 +3,7 @@ import signal
 import subprocess
 import time
 import json
+import sentry_sdk
 from typing import Optional, List
 
 from backend.app.schemas.sudoku_schema import SudokuGrid
@@ -49,6 +50,7 @@ class Worker:
             try:
                 job = self.queue.claim(timeout_s=self.poll_timeout_s)
             except Exception:
+                sentry_sdk.capture_exception()
                 logger.exception("Queue claim failed")
                 time.sleep(2)
                 continue
@@ -161,6 +163,7 @@ class Worker:
                 logger.warning("Unexpected return code %s for run_id=%s", rc, run_id)
 
         except subprocess.TimeoutExpired:
+            sentry_sdk.capture_exception()
             logger.warning("Solver timeout for run_id=%s", run_id)
             try:
                 self.db.insert_result(
@@ -176,13 +179,16 @@ class Worker:
                 self.db.update_run_status(run_id, JobStatus.TIMEOUT)
                 self.queue.ack(run_id)
             except Exception:
+                sentry_sdk.capture_exception()
                 logger.exception("Failed to record timeout for run_id=%s", run_id)
                 try:
                     self.queue.fail(run_id, reason="Timeout")
                 except Exception:
+                    sentry_sdk.capture_exception()
                     logger.exception("Failed queue cleanup after timeout run_id=%s", run_id)
                     
         except FileNotFoundError:
+            sentry_sdk.capture_exception()
             logger.error("Solver binary not found for run_id=%s", run_id)
             try:
                 self.db.insert_result(
@@ -198,13 +204,16 @@ class Worker:
                 self.db.update_run_status(run_id, JobStatus.FAILED)
                 self.queue.ack(run_id)
             except Exception:
+                sentry_sdk.capture_exception()
                 logger.exception("Failed to record binary error for run_id=%s", run_id)
                 try:
                     self.queue.fail(run_id, reason="Binary not found")
                 except Exception:
+                    sentry_sdk.capture_exception()
                     logger.exception("Failed queue cleanup run_id=%s", run_id)
                     
         except Exception as e:
+            sentry_sdk.capture_exception(e)
             logger.exception("Job failed run_id=%s", run_id)
             try:
                 self.db.insert_result(
@@ -220,10 +229,12 @@ class Worker:
                 self.db.update_run_status(run_id, JobStatus.FAILED)
                 self.queue.ack(run_id)
             except Exception:
+                sentry_sdk.capture_exception()
                 logger.exception("Failed DB update for run_id=%s", run_id)
                 try:
                     self.queue.fail(run_id, reason=str(e))
                 except Exception:
+                    sentry_sdk.capture_exception()
                     logger.exception("Failed queue cleanup run_id=%s", run_id)
 
 def sudoku_helper(puzzle: List[List[int]]):

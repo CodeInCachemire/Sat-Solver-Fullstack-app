@@ -23,6 +23,9 @@ services:
       PYTHONUNBUFFERED: 1
       # Gemini API for image upload
       GEMINI_API_KEY: ${GEMINI_API_KEY}
+      # Sentry error monitoring
+      SENTRY_DSN: ${SENTRY_DSN}
+      SENTRY_ENVIRONMENT: production
     # No health check changes needed
     restart: always
 
@@ -39,6 +42,8 @@ services:
       REDIS_PORT: 6379
       PYTHONUNBUFFERED: 1
       WORKER_ID: worker-1
+      SENTRY_DSN: ${SENTRY_DSN}
+      SENTRY_ENVIRONMENT: production
     restart: always
 
   worker-2:
@@ -54,6 +59,8 @@ services:
       REDIS_PORT: 6379
       PYTHONUNBUFFERED: 1
       WORKER_ID: worker-2
+      SENTRY_DSN: ${SENTRY_DSN}
+      SENTRY_ENVIRONMENT: production
     restart: always
 
   redis:
