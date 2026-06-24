@@ -7,6 +7,16 @@
 A production-deployed full-stack application built around a custom **DPLL SAT solver written in C**, exposed as two web tools via a shared Python backend: a general propositional logic terminal and a Sudoku solver with image upload and live NYT daily puzzle integration.
 
 ---
+## Deep Documentation
+
+Per-subsystem design docs in order [`docs/wiki/`](docs/wiki/):
+
+1. [System Architecture](docs/wiki/01-system-architecture.md)
+2. [Redis Queue Design](docs/wiki/02-redis-queue-design.md)
+3. [Layered Architecture & Dependency Injection](docs/wiki/03-layered-architecture-di.md)
+4. [C SAT Solver Pipeline](docs/wiki/04-c-solver-pipeline.md)
+5. [Database Schema & Deduplication](docs/wiki/05-database-schema-deduplication.md)
+6. [Infrastructure & Deployment](docs/wiki/06-infrastructure-deployment.md)
 
 ## Architecture
 
@@ -134,14 +144,3 @@ Every push to `main` triggers a GitHub Actions workflow that:
 See [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 ---
-
-## Deep Documentation
-
-Per-subsystem design docs in order [`docs/wiki/`](docs/wiki/):
-
-1. [System Architecture](docs/wiki/01-system-architecture.md)
-2. [Redis Queue Design](docs/wiki/02-redis-queue-design.md)
-3. [Layered Architecture & Dependency Injection](docs/wiki/03-layered-architecture-di.md)
-4. [C SAT Solver Pipeline](docs/wiki/04-c-solver-pipeline.md)
-5. [Database Schema & Deduplication](docs/wiki/05-database-schema-deduplication.md)
-6. [Infrastructure & Deployment](docs/wiki/06-infrastructure-deployment.md)
