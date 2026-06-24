@@ -28,7 +28,7 @@ env/
 !.env.example
 !.env.*.example
 !.env.docker
-
+*.mmd
 # C/C++ build artifacts
 *.o
 *.obj
@@ -62,3 +62,13 @@ tests_new/
 start_api.sh
 start_worker.sh
 start_frontend.sh
+otherfiles/
+image2.png
+image.png
+sudoku_frontend/test.html
+sudoku_frontend/test.css
+settings.json
+d843ca800f749fdf736602ceb38ca433.jpg
+.vscode/settings.json
+.env.aws.example
+postgresql_commands.md
